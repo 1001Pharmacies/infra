@@ -28,7 +28,7 @@ SSH_PRIVATE_IP_RANGE            ?= 10.10.*
 STACK                           ?= logs services
 
 define setup-nfsd-osx
-	$(eval dir:=$(or $(1),$(MONOREPO_DIR)))
+	$(eval dir:=$(or $(1),$(WORKING_DIR)))
 	$(eval uid:=$(or $(2),$(UID)))
 	$(eval gid:=$(or $(3),$(GID)))
 	grep "$(dir)" /etc/exports >/dev/null 2>&1 || echo "$(dir) -alldirs -mapall=$(uid):$(gid) localhost" |sudo tee -a /etc/exports >/dev/null

@@ -28,7 +28,7 @@ DOCKER_RUN_OPTIONS              := --rm --network $(DOCKER_NETWORK)
 # If we do not mount the volume in our docker, we wont be able to access the files in this volume as the /drone/src directory would be empty.
 DOCKER_RUN_VOLUME               := -v /var/run/docker.sock:/var/run/docker.sock -v $$(docker inspect $$(basename $$(cat /proc/1/cpuset)) 2>/dev/null |awk 'BEGIN {FS=":"} $$0 ~ /"drone-[a-zA-Z0-9]*:\/drone"$$/ {gsub(/^[ \t\r\n]*"/,"",$$1); print $$1; exit}'):/drone $(if $(wildcard /root/.netrc),-v /root/.netrc:/root/.netrc)
 else
-DOCKER_RUN_VOLUME               := -v /var/run/docker.sock:/var/run/docker.sock -v $(or $(MONOREPO_DIR),$(APP_DIR)):$(or $(WORKSPACE_DIR),$(MONOREPO_DIR),$(APP_DIR))
+DOCKER_RUN_VOLUME               := -v /var/run/docker.sock:/var/run/docker.sock -v $(WORKING_DIR):$(or $(WORKSPACE_DIR),$(WORKING_DIR))
 endif
 
 ifeq ($(DOCKER), true)
