@@ -2,12 +2,13 @@
 # BUILD
 
 .PHONY: build@%
-build@%: ## Build deployment application docker images
-	$(eval DRYRUN_IGNORE := true)
-	$(eval SERVICES      ?= $(shell $(call docker-compose,--log-level critical config --services)))
-	$(eval build_app     += $(foreach service,$(or $(SERVICE),$(SERVICES)),$(if $(shell docker images -q $(DOCKER_REPOSITORY)/$(service):$(DOCKER_IMAGE_TAG) 2>/dev/null),,$(service))))
-	$(eval DRYRUN_IGNORE := false)
-	$(if $(build_app),$(call make,build-app),echo app already built for env $*)
+build@%: infra-base ## Build application docker images to deploy
+	$(eval DRYRUN_IGNORE   := true)
+	$(eval SERVICES        ?= $(shell $(call docker-compose,--log-level critical config --services)))
+	$(eval DRYRUN_IGNORE   := false)
+	$(eval docker_images   += $(foreach service,$(SERVICES),$(if $(shell docker images -q $(DOCKER_REPOSITORY)/$(service):$(DOCKER_IMAGE_TAG) 2>/dev/null),$(service))))
+	$(eval build_app       := $(or $(filter $(DOCKER_BUILD_CACHE),false),$(filter-out $(docker_images),$(SERVICES))))
+	$(if $(build_app),$(call make,build-app),$(if $(filter $(VERBOSE),true),$(foreach service,$(SERVICES),echo "docker image $(DOCKER_REPOSITORY)/$(service):$(DOCKER_IMAGE_TAG) has id $(shell docker images -q $(DOCKER_REPOSITORY)/$(service):$(DOCKER_IMAGE_TAG) 2>/dev/null)" &&) true))
 
 .PHONY: build-env
 build-env: SERVICE ?= $(DOCKER_SERVICE)

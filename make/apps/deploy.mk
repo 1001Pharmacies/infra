@@ -9,8 +9,7 @@ ifneq ($(wildcard ../infra),)
 endif
 
 .PHONY: deploy@%
-deploy@%: ## Deploy application docker images
-	$(call make,build@$*)
+deploy@%: infra-base build@% ## Deploy application docker images
 	$(call make,docker-login docker-tag docker-push)
 	$(call make,infra-ansible-pull@$(ENV) ANSIBLE_DOCKER_IMAGE_TAG=$(VERSION) ANSIBLE_TAGS=aws DOCKER_BUILD_TARGET=local,,APP AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)
 	$(call make,docker-tag-latest docker-push-latest)
