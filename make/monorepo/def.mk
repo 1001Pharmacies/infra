@@ -3,6 +3,6 @@ APPS_NAME                       ?= $(foreach app,$(APPS),$(or $(shell awk -F '='
 CMDS                            += copy master-tag release release-check release-create release-finish subrepo-push update-subrepo
 CONTEXT                         += APPS APPS_NAME ENV RELEASE_INSTALL
 DIRS                            ?= $(MAKE_DIR) $(PARAMETERS) $(SHARED)
-RELEASE_UPGRADE                 ?= $(filter v%, $(shell git tag -l |awk '/$(RELEASE_INSTALL)/,0' |sed '$$d'))
+RELEASE_UPGRADE                 ?= $(filter v%, $(shell git tag -l |sort -V |awk '/$(RELEASE_INSTALL)/,0'))
 RELEASE_VERSION                 ?= $(firstword $(subst -, ,$(VERSION)))
 SUBREPOS                        ?= $(filter subrepo/%, $(shell git remote))
