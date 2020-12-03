@@ -57,12 +57,12 @@ attach_tmux () {
 
 # echo the "number of running processes"/"total number of processes"/"number of processes in D-state"
 process_count () {
-    ps ax -o stat 2>/dev/null |awk '$1 ~ /R/ {r_processes++}; $1 ~ /D/ {d_processes++}; END {print r_processes+0"/"d_processes+0"/"NR-1}'
+    ps ax -o stat 2>/dev/null |awk '$1 ~ /R/ {process_running++}; $1 ~ /D/ {process_dstate++}; END {print process_running+0"/"NR-1"/"process_dstate+0}'
 }
 
-# echo the "number of distinct logged in users"/"number of logged in users"/"number of distinct users running processes"
+# echo the "number of distinct logged in users"/"number of distinct users running processes"/"number of logged in users"
 user_count () {
-    ps ax -o user,tty,comm 2>/dev/null |awk '$2 !~ /^\?/ && $3 !~ /getty$/ {l_users[$2]++; d_users[$1]++}; {p_users[$1]++}; END {print length(d_users)-1"/"length(l_users)-1"/"length(p_users)-1}'
+    ps ax -o user,tty,comm 2>/dev/null |awk '$2 !~ /^\?/ && $3 !~ /getty$/ {logged[$1]++; tty[$2]++}; {user[$1]++}; END {for (ul in logged) {sl = sl" "ul;}; users_logged=split(sl,a," ")-1; for (uu in user) {su = su" "uu;}; users_user=split(su,a," ")-1; for (ut in tty) {st = st" "ut;}; users_tty=split(st,a," ")-1; print users_logged"/"users_user"/"users_tty}'
 }
 
 # echo the load average
