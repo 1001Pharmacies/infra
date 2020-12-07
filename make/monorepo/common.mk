@@ -58,7 +58,9 @@ up: $(APPS) ## Create application dockers
 
 .PHONY: $(APPS)
 $(APPS):
-	$(call make,-o install-infra $(patsubst apps-%,%,$(MAKECMDGOALS)) STATUS=0,$(patsubst %/,%,$@),ENV_SUFFIX)
+	$(if $(wildcard $@/Makefile), \
+      $(call make,-o install-infra $(patsubst apps-%,%,$(MAKECMDGOALS)) STATUS=0,$(patsubst %/,%,$@),ENV_SUFFIX), \
+      printf "${COLOR_BROWN}WARNING${COLOR_RESET}: ${COLOR_GREEN}no app available in folder${COLOR_RESET} $@.\n" >&2)
 
 # run targets in $(APPS)
 .PHONY: apps-%

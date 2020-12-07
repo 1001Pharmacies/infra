@@ -130,4 +130,4 @@ up: docker-compose-up start-up ## Create application dockers
 
 ## %-rule-exists: print a warning message if $* target does not exists
 %-rule-exists:
-	$(if $(filter $*,$(MAKECMDGOALS)),$(if $(filter-out $*,$(MAKETARGETS)),printf "${COLOR_BROWN}WARNING${COLOR_RESET}: ${COLOR_GREEN}target${COLOR_RESET} $* ${COLOR_GREEN}not available in${COLOR_RESET} $(APP).\n" >&2))
+	$(if $(filter $*,$(MAKECMDGOALS)),$(if $(filter-out $*,$(MAKETARGETS)),printf "${COLOR_BROWN}WARNING${COLOR_RESET}: ${COLOR_GREEN}target${COLOR_RESET} $* ${COLOR_GREEN}not available in app${COLOR_RESET} $(APP).\n" >&2))
