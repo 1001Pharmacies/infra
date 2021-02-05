@@ -57,3 +57,15 @@ RUN let $UID >/dev/null 2>&1 \
  || true
 
 USER $USER
+
+FROM local as debug
+ARG DOCKER_BUILD_DIR
+
+FROM local as tests
+ARG DOCKER_BUILD_DIR
+
+FROM tests as preprod
+ARG DOCKER_BUILD_DIR
+
+FROM preprod as prod
+ARG DOCKER_BUILD_DIR

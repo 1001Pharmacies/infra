@@ -2,7 +2,7 @@ CMDS                            += openstack ssh-run terraform
 COMPOSE_IGNORE_ORPHANS          ?= true
 CONTEXT                         += GIT_AUTHOR_EMAIL GIT_AUTHOR_NAME
 DOCKER_BUILD_VARS               += SSH_BASTION_HOSTNAME SSH_BASTION_USERNAME SSH_PUBLIC_HOST_KEYS SSH_PRIVATE_IP_RANGE
-DOCKER_SERVICE                  ?= mysql
+DOCKER_SERVICE                  ?= cli
 ELASTICSEARCH_HOST              ?= elasticsearch
 ELASTICSEARCH_PORT              ?= 9200
 ELASTICSEARCH_PROTOCOL          ?= http
@@ -11,11 +11,9 @@ GIT_AUTHOR_EMAIL                ?= $(shell git config user.email 2>/dev/null)
 GIT_AUTHOR_NAME                 ?= $(shell git config user.name 2>/dev/null)
 GIT_REMOTE_HOSTS                ?= github.com gitlab.com
 HOME                            ?= /home/$(USER)
-MOUNT_NFS_CONFIG                ?= addr=$(MOUNT_NFS_HOST),actimeo=3,intr,noacl,noatime,nocto,nodiratime,nolock,soft,rsize=32768,wsize=32768,tcp,rw,vers=3
-MOUNT_NFS_DISK                  ?= $(MOUNT_NFS_HOST):/$(SHARED)
-MOUNT_NFS_HOST                  ?= nfs
-MOUNT_NFS_OPTIONS               ?= rw,rsize=8192,wsize=8192,bg,hard,intr,nfsvers=3,noatime,nodiratime,actimeo=3
-MOUNT_NFS_PATH                  ?= /srv/$(subst :,,$(MOUNT_NFS_DISK))
+NFS_DISK                        ?= $(NFS_HOST):/$(SHARED)
+NFS_OPTIONS                     ?= rw,rsize=8192,wsize=8192,bg,hard,intr,nfsvers=3,noatime,nodiratime,actimeo=3
+NFS_PATH                        ?= /srv/$(subst :,,$(NFS_DISK))
 SETUP_NFSD                      ?= false
 SETUP_NFSD_OSX_CONFIG           ?= nfs.server.bonjour=0 nfs.server.mount.regular_files=1 nfs.server.mount.require_resv_port=0 nfs.server.nfsd_threads=16 nfs.server.async=1
 SETUP_SYSCTL                    ?= false
@@ -25,7 +23,7 @@ SSH_BASTION_HOSTNAME            ?=
 SSH_BASTION_USERNAME            ?=
 SSH_PUBLIC_HOST_KEYS            ?= $(GIT_REMOTE_HOSTS) $(SSH_BASTION_HOSTNAME)
 SSH_PRIVATE_IP_RANGE            ?= 10.10.*
-STACK                           ?= logs services
+STACK                           ?= base logs services
 
 define setup-nfsd-osx
 	$(eval dir:=$(or $(1),$(MONOREPO_DIR)))

@@ -44,6 +44,14 @@ RUN [ "$UID" -eq "$UID" ] 2>/dev/null \
 
 USER $USER
 
+FROM local as debug
+ARG DOCKER_BUILD_DIR
+
 FROM local as tests
+ARG DOCKER_BUILD_DIR
+
 FROM tests as preprod
+ARG DOCKER_BUILD_DIR
+
 FROM preprod as prod
+ARG DOCKER_BUILD_DIR

@@ -33,18 +33,18 @@ endif
 
 ifeq ($(DOCKER), true)
 
-DOCKER_SSH_AUTH                 := -e SSH_AUTH_SOCK=/tmp/ssh-agent/socket -v $(DOCKER_VOLUME_SSH):/tmp/ssh-agent:ro
+DOCKER_SSH_AUTH                 := -e SSH_AUTH_SOCK=/tmp/ssh-agent/socket -v $(DOCKER_VOLUME_SSH):/tmp/ssh-agent
 
 define docker-run
-	$(call run,$(1) $(2))
+	$(call run,$(or $(1),$(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)) $(2))
 endef
 ifeq ($(DRONE), true)
 define exec
-	$(call run,$(DOCKER_SSH_AUTH) $(DOCKER_IMAGE) sh -c '$(1)')
+	$(call run,$(DOCKER_SSH_AUTH) $(DOCKER_IMAGE) sh -c '$(or $(1),$(SHELL))')
 endef
 else
 define exec
-	$(ECHO) docker exec $(ENV_ARGS) $(DOCKER_EXEC_OPTIONS) $(DOCKER_RUN_WORKDIR) $(DOCKER_NAME) sh -c '$(1)'
+	$(ECHO) docker exec $(ENV_ARGS) $(DOCKER_EXEC_OPTIONS) $(DOCKER_RUN_WORKDIR) $(DOCKER_NAME) sh -c '$(or $(1),$(SHELL))'
 endef
 endif
 define run
@@ -55,10 +55,10 @@ else
 
 SHELL                           := /bin/bash
 define docker-run
-	$(ECHO) docker run $(DOCKER_RUN_OPTIONS) $(patsubst %,--env-file %,$(ENV_FILE)) $(foreach var,$(ENV_VARS),$(if $($(var)),-e $(var)='$($(var))')) $(shell printenv |awk -F '=' 'NR == FNR { if($$1 !~ /^(\#|$$)/) { A[$$1]; next } } ($$1 in A) {print "-e "$$0}' .env.dist - 2>/dev/null) $(DOCKER_RUN_VOLUME) $(DOCKER_RUN_WORKDIR) $(1) $(2)
+	$(ECHO) docker run $(DOCKER_RUN_OPTIONS) $(patsubst %,--env-file %,$(ENV_FILE)) $(foreach var,$(ENV_VARS),$(if $($(var)),-e $(var)='$($(var))')) $(shell printenv |awk -F '=' 'NR == FNR { if($$1 !~ /^(\#|$$)/) { A[$$1]; next } } ($$1 in A) {print "-e "$$0}' .env.dist - 2>/dev/null) $(DOCKER_RUN_VOLUME) $(DOCKER_RUN_WORKDIR) $(or $(1),$(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)) $(2)
 endef
 define exec
-	$(call run,sh -c '$(1)')
+	$(call run,sh -c '$(or $(1),$(SHELL))')
 endef
 define run
 	IFS=$$'\n'; $(ECHO) env $(ENV_ARGS) $$(cat $(ENV_FILE) 2>/dev/null |awk -F "=" '$$1 ~! /^\(#|$$\)/') $(1)

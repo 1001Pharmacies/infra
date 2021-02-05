@@ -2,22 +2,27 @@
 # DEPLOY #
 ##########
 
-.PHONY: codedeploy
-codedeploy:
+.PHONY: deploy app-deploy
+# target deploy: Run post install hooks in the deployed application
+## Called by ansible after creation of the docker application on remote host
+deploy: app-deploy ## Run post install hooks in the deployed application
+
+.PHONY: deploy@%
+# target deploy@%: Deploy application docker images
+##  tag and push docker images to docker registry
+##  run ansible-pull on hosts to pull docker images from the registry
+##  tag and push docker images as latest to docker registry
+deploy@%: infra-base build@% ## Deploy application docker images
+	$(call make,docker-login docker-tag docker-push)
+	$(call make,infra-ansible-pull@$(ENV) ANSIBLE_DOCKER_IMAGE_TAG=$(VERSION) ANSIBLE_TAGS=aws,,APP AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)
+	$(call make,docker-tag-latest docker-push-latest)
+
+.PHONY: deploy-aws-codedeploy-%
+deploy-aws-codedeploy-%:
+	$(call exec,git fetch subrepo/$(SUBREPO))
 ifneq ($(wildcard ../infra),)
 	$(call make,aws-codedeploy,../infra,CODEDEPLOY_APP_NAME CODEDEPLOY_DEPLOYMENT_CONFIG CODEDEPLOY_DEPLOYMENT_GROUP CODEDEPLOY_DESCRIPTION CODEDEPLOY_GITHUB_REPO CODEDEPLOY_GITHUB_COMMIT_ID)
 endif
-
-.PHONY: deploy@%
-deploy@%: infra-base build@% ## Deploy application docker images
-	$(call make,docker-login docker-tag docker-push)
-	$(call make,infra-ansible-pull@$(ENV) ANSIBLE_DOCKER_IMAGE_TAG=$(VERSION) ANSIBLE_TAGS=aws DOCKER_BUILD_TARGET=local,,APP AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)
-	$(call make,docker-tag-latest docker-push-latest)
-
-.PHONY: deploy-old-%
-deploy-old-%:
-	$(call exec,git fetch subrepo/$(SUBREPO))
-	$(call make,codedeploy)
 
 .PHONY: deploy-assets-install
 deploy-assets-install:

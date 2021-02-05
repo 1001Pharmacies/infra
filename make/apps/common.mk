@@ -17,12 +17,6 @@ ifneq ($(SUBREPO),)
 	fi
 endif
 
-.PHONY: build
-build: docker-compose-build ## Build application docker images
-
-.PHONY: clean
-clean: clean-app docker-compose-down clean-env ## Cleanup application and docker images
-
 .PHONY: config
 config: docker-compose-config ## View docker compose file
 
@@ -31,11 +25,8 @@ connect: docker-compose-connect ## Connect to docker $(SERVICE)
 
 .PHONY: connect@%
 connect@%: SERVICE ?= $(DOCKER_SERVICE)
-connect@%: ## Connect to docker $(SERVICE) with ssh on (first) remote ENV $* server
+connect@%: ## Connect to docker $(SERVICE) on first remote host
 	$(call make,ssh-connect,../infra,APP SERVICE)
-
-.PHONY: deploy
-deploy: deploy-app ## Deploy application
 
 .PHONY: down
 down: docker-compose-down ## Remove application dockers
@@ -50,7 +41,7 @@ endif
 
 .PHONY: exec@%
 exec@%: SERVICE ?= $(DOCKER_SERVICE)
-exec@%: ## Exec a command in docker $(SERVICE) with ssh on (all) remote ENV $* servers
+exec@%: ## Exec a command in docker $(SERVICE) on all remote hosts
 	$(call make,ssh-exec,../infra,APP ARGS SERVICE)
 
 .PHONY: logs
@@ -58,12 +49,6 @@ logs: docker-compose-logs ## Display application dockers logs
 
 .PHONY: ps
 ps: docker-compose-ps ## List application dockers
-
-.PHONY: rebuild
-rebuild: docker-compose-rebuild ## Rebuild application dockers images
-
-.PHONY: rebuild-images
-rebuild-images: docker-rebuild-images ## Build docker/* images
 
 .PHONY: recreate
 recreate: docker-compose-recreate start-up ## Recreate application dockers
@@ -86,25 +71,25 @@ endif
 
 .PHONY: run@%
 run@%: SERVICE ?= $(DOCKER_SERVICE)
-run@%: ## Run a command with ssh on (all) remote ENV $* servers
+run@%: ## Run a command on all remote hosts
 	$(call make,ssh-run,../infra,APP ARGS)
 
 .PHONY: scale
-scale: docker-compose-scale ## Start application dockers
+scale: docker-compose-scale ## Scale application to NUM dockers
 
 .PHONY: ssh@%
-ssh@%: ## Connect with ssh to (first) remote ENV $* server
+ssh@%: ## Connect to first remote host
 	$(call make,ssh,../infra,APP)
 
-## stack: call docker-stack function with each value of $(STACK)
+# target stack: Call docker-stack function with each value of $(STACK)
 .PHONY: stack
 stack:
 	$(foreach stackz,$(STACK),$(call docker-stack,$(stackz)))
 
-## stack-%: call docker-compose-* command on a given stack
-# calling stack-base-up will fire the docker-compose-up target on the base stack
-# it splits $* on dashes and extracts stack from the beginning of $* and command
-# from the last part of $*
+# target stack-%: Call docker-compose-* command on a given stack
+## ex: calling stack-base-up will fire the docker-compose-up target on the base stack
+## it splits $* on dashes and extracts stack from the beginning of $* and command
+## from the last part of $*
 .PHONY: stack-%
 stack-%:
 	$(eval stack   := $(subst -$(lastword $(subst -, ,$*)),,$*))
@@ -119,15 +104,21 @@ start: docker-compose-start ## Start application dockers
 .PHONY: stop
 stop: docker-compose-stop ## Stop application dockers
 
+.PHONY: tests app-tests
+tests: app-tests ## Test application
+
 .PHONY: up
 up: docker-compose-up start-up ## Create application dockers
 
-## %: always fired target
-# this target is fired everytime make is runned to call the stack target and
-# update COMPOSE_FILE variable with all .yml files of the current project stacks
+.PHONY: update app-update
+update: app-update ## Update application
+
+# target %: Always fired target
+## this target is fired everytime make is runned to call the stack target and
+## update COMPOSE_FILE variable with all .yml files of the current project stack
 .PHONY: FORCE
 %: FORCE stack %-rule-exists ;
 
-## %-rule-exists: print a warning message if $* target does not exists
+# target %-rule-exists: Print a warning message if $* target does not exists
 %-rule-exists:
 	$(if $(filter $*,$(MAKECMDGOALS)),$(if $(filter-out $*,$(MAKETARGETS)),printf "${COLOR_BROWN}WARNING${COLOR_RESET}: ${COLOR_GREEN}target${COLOR_RESET} $* ${COLOR_GREEN}not available in app${COLOR_RESET} $(APP).\n" >&2))

@@ -1,11 +1,26 @@
-CMDS                            += docker-compose-exec
-COMPOSE_FILE                    ?= $(wildcard docker/docker-compose.yml docker/docker-compose.$(ENV).yml $(foreach file,app nfs ssh subrepo tmpfs debug,$(if $(filter true,$(MOUNT_$(call UPPERCASE,$(file)))),docker/docker-compose.$(file).yml)))
+CMDS                            += docker-compose-exec docker-run docker-run-%
+COMPOSE_FILE                    ?= $(wildcard docker/docker-compose.yml $(foreach file,$(patsubst docker/docker-compose.%,%,$(basename $(wildcard docker/docker-compose.*.yml))),$(if $(filter true,$(COMPOSE_FILE_$(file)) $(COMPOSE_FILE_$(call UPPERCASE,$(file)))),docker/docker-compose.$(file).yml)))
+COMPOSE_FILE_$(ENV)             ?= true
+COMPOSE_FILE_DEBUG              ?= $(DEBUG)
+COMPOSE_FILE_NFS                ?= $(MOUNT_NFS)
+COMPOSE_FILE_SSH                ?= true
+ifneq ($(SUBREPO),)
+COMPOSE_FILE_SUBREPO            ?= true
+else
+COMPOSE_FILE_APP                ?= true
+endif
+ifneq (,$(filter $(ENV),$(ENV_DEPLOY)))
+COMPOSE_FILE_TMPFS              ?= false
+else
+COMPOSE_FILE_TMPFS              ?= true
+endif
 COMPOSE_PROJECT_NAME            ?= $(USER)_$(ENV)_$(APP)
 COMPOSE_SERVICE_NAME            ?= $(subst _,-,$(COMPOSE_PROJECT_NAME))
-CONTEXT                         += COMPOSE_FILE COMPOSE_PROJECT_NAME DOCKER_SERVICE
-DOCKER_BUILD_ARGS               ?= $(foreach var,$(DOCKER_BUILD_VARS),$(if $($(var)),--build-arg $(var)='$($(var))'))
+CONTEXT                         += COMPOSE_FILE COMPOSE_PROJECT_NAME DOCKER_IMAGE_TAG DOCKER_REPOSITORY DOCKER_SERVICE
+DOCKER_BUILD_ARGS               ?= $(if $(filter $(DOCKER_BUILD_NO_CACHE),true),--pull --no-cache) $(foreach var,$(DOCKER_BUILD_VARS),$(if $($(var)),--build-arg $(var)='$($(var))'))
 DOCKER_BUILD_CACHE              ?= true
-DOCKER_BUILD_TARGET             ?= $(if $(filter-out $(APP),infra),$(if $(filter $(ENV),$(DOCKER_BUILD_TARGETS)),$(ENV),$(DOCKER_BUILD_TARGET_DEFAULT)),$(DOCKER_BUILD_TARGET_DEFAULT))
+DOCKER_BUILD_NO_CACHE           ?= false
+DOCKER_BUILD_TARGET             ?= $(if $(filter $(ENV),$(DOCKER_BUILD_TARGETS)),$(ENV),$(DOCKER_BUILD_TARGET_DEFAULT))
 DOCKER_BUILD_TARGET_DEFAULT     ?= local
 DOCKER_BUILD_TARGETS            ?= local debug tests preprod prod
 DOCKER_BUILD_VARS               ?= APP BRANCH DOCKER_GID DOCKER_REPOSITORY GID GIT_AUTHOR_EMAIL GIT_AUTHOR_NAME TARGET UID USER VERSION

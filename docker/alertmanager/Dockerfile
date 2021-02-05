@@ -9,3 +9,15 @@ RUN sed 's@SLACK_WEBHOOK_ID@'"${SLACK_WEBHOOK_ID:-UNDEFINED}"'@g' /etc/alertmana
 
 FROM dist as local
 ARG DOCKER_BUILD_DIR
+
+FROM local as debug
+ARG DOCKER_BUILD_DIR
+
+FROM local as tests
+ARG DOCKER_BUILD_DIR
+
+FROM tests as preprod
+ARG DOCKER_BUILD_DIR
+
+FROM preprod as prod
+ARG DOCKER_BUILD_DIR

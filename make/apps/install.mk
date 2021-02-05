@@ -1,6 +1,9 @@
 ##
 # INSTALL
 
+.PHONY: install app-install
+install: app-install ## Install application
+
 .PHONY: install-mysql-database-%
 install-mysql-database-%: infra-base
 	$(call exec,mysql -h mysql -u root -proot $* -e "use $*" >/dev/null 2>&1 || mysql -h mysql -u root -proot mysql -e "create database $* character set utf8 collate utf8_unicode_ci;")

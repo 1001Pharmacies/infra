@@ -1,1 +1,1 @@
-elastic                         ?= elastic/elasticsearch elastic/kibana alpine/sysctl
+elastic                         ?= elastic/curator elastic/elasticsearch elastic/kibana alpine/sysctl

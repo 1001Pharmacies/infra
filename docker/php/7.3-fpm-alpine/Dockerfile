@@ -263,3 +263,15 @@ USER $USER
 
 RUN mkdir -p ~/.ssh \
  && ssh-keyscan -t rsa -H github.com >> ~/.ssh/known_hosts
+
+FROM local as debug
+ARG DOCKER_BUILD_DIR
+
+FROM local as tests
+ARG DOCKER_BUILD_DIR
+
+FROM tests as preprod
+ARG DOCKER_BUILD_DIR
+
+FROM preprod as prod
+ARG DOCKER_BUILD_DIR

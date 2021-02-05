@@ -268,3 +268,15 @@ ENV WORKSPACE_DIR=/Sources
 
 ENTRYPOINT yarn theia start $WORKSPACE_DIR --hostname=0.0.0.0
 EXPOSE 3000
+
+FROM local as debug
+ARG DOCKER_BUILD_DIR
+
+FROM local as tests
+ARG DOCKER_BUILD_DIR
+
+FROM tests as preprod
+ARG DOCKER_BUILD_DIR
+
+FROM preprod as prod
+ARG DOCKER_BUILD_DIR

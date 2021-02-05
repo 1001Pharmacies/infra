@@ -1,33 +1,16 @@
+APP_TYPE := infra
 include make/include.mk
 
-.PHONY: all
-all: install ## Build and deploy infra
-
 ##
-# BUILD
+# APP
 
-.PHONY: build-app
-build-app:
-	$(call make,docker-compose-build DOCKER_BUILD_TARGET=$*)
+app-build: build-rm infra-base
+	$(call install-parameters,,curator,build)
+	$(call make,docker-compose-build)
 	$(call make,up)
 	$(call make,docker-compose-exec ARGS='rm -Rf /root/.npm /log-buffer/*' SERVICE=logagent)
 	$(call make,docker-commit)
 
-##
-# CLEAN
+app-deploy: deploy-ping
 
-.PHONY: clean-app
-clean-app: ;
-
-##
-# DEPLOY
-
-## Called when application is deployed in prod/preprod
-.PHONY: deploy-app
-deploy-app: deploy-ping
-
-##
-# INSTALL
-
-.PHONY: install
-install: base node up ## Install docker $(STACK) services
+app-install: base node up

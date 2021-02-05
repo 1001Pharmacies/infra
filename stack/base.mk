@@ -7,8 +7,7 @@ ssh-add: base-ssh-add
 .PHONY: base-ssh-add
 base-ssh-add: base-ssh-key
 	$(eval SSH_PRIVATE_KEYS := $(foreach file,$(SSH_DIR)/id_rsa $(filter-out $(wildcard $(SSH_DIR)/id_rsa),$(wildcard $(SSH_DIR)/*)),$(if $(shell grep "PRIVATE KEY" $(file) 2>/dev/null),$(notdir $(file)))))
-	$(call docker-run,-v $(DOCKER_VOLUME_SSH):/tmp/ssh-agent $(DOCKER_IMAGE_SSH),ssh-add -l >/dev/null) \
-	  || $(call docker-run,-v $(DOCKER_VOLUME_SSH):/tmp/ssh-agent $(DOCKER_IMAGE_SSH),ssh-add $(patsubst %,$(SSH_DIR)/%,$(SSH_PRIVATE_KEYS)) 2>/dev/null) ||:
+	$(call docker-run,$(DOCKER_SSH_AUTH) $(DOCKER_IMAGE_CLI),sh -c "$(foreach file,$(patsubst %,$(SSH_DIR)/%,$(SSH_PRIVATE_KEYS)),ssh-add -l |grep -qw $(file) || ssh-add $(file) ||: &&) true")
 
 .PHONY: base-ssh-key
 base-ssh-key: stack-base-up
